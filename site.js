@@ -481,9 +481,11 @@ document.getElementById('fxgrid').innerHTML = Object.entries(FX).map(([k,v]) => 
 const vframe = document.querySelector('.vframe');
 if (vframe) {
   const v = vframe.querySelector('video'), src = v.querySelector('source');
-  const empty = () => { vframe.classList.add('empty'); vframe.querySelector('.vsoon').hidden = false; };
-  src.addEventListener('error', empty);
-  if (v.networkState === HTMLMediaElement.NETWORK_NO_SOURCE) empty();
+  const empty = on => { vframe.classList.toggle('empty', on); vframe.querySelector('.vsoon').hidden = !on; };
+  // only a failed load shows the placeholder (networkState reads NO_SOURCE briefly while the source is being picked)
+  src.addEventListener('error', () => empty(true));
+  v.addEventListener('loadeddata', () => empty(false));
+  window.addEventListener('load', () => { if (!v.currentSrc && v.networkState === HTMLMediaElement.NETWORK_NO_SOURCE) empty(true); });
   // autoplay (muted, as browsers require) while the video is on screen, unless the viewer paused it
   let userPaused = false, auto = false;
   v.addEventListener('pause', () => { if (!auto && !v.ended) userPaused = true; auto = false; });
