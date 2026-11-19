@@ -1,0 +1,73 @@
+GENERAL RULES for parameter values:
+- The tool chains are FIXED. You never add, remove, reorder, or rename tools. You only choose parameter VALUES for the numbered sites you are given.
+- For each site you set, output the params object for that site's tool using ONLY the parameter names listed below for that tool.
+- You may set a subset of a tool's parameters; any parameter you omit keeps its current value. BUT when you set a LIST parameter you must give the FULL list (e.g. all 10 eq values, all 24 reverb values) -- partial lists are rejected.
+- All values are raw processor controls (most are sigmoid- or exponentially-mapped internally). Each parameter lists its VALID range, which is exactly the range observed across hundreds of professionally-optimized grafx mixing consoles -- values outside it are clamped. Use the full range the way those consoles do: strong settings (high ratios, deep cuts, hard limiting) are normal, usually paired with a suitable "drywet" (parallel processing).
+- Numbers only. No strings, nulls, nested lists (beyond the stated flat lists), or comments.
+- Every tool also accepts an OPTIONAL "drywet" parameter: a logit for the wet weight w = sigmoid(drywet), y = w*wet + (1-w)*dry. drywet 0.0 = 50/50, +2.2 = 90% wet, +4.0 = 98% wet, -2.2 = 10% wet, -9 or lower = bypassed. Valid range is roughly -13..+14 (tool-specific, clamped to observed console usage).
+- The finished mix is loudness-normalized to a standard level at the very end. So NEVER chase overall loudness -- chase balance, tone, dynamics, and space. Louder is not better.
+- Make every move purposeful and Reference-driven: neutral values where the Reference sounds untouched, decisive values where it clearly demands character.
+
+### tool: eq
+10-band parametric EQ. Params object shape: {"w0": [10 numbers], "q_inv": [10 numbers], "log_gain": [10 numbers]}. Always give all three full 10-number lists when you touch the eq.
+- w0: band center positions, low to high. Approximate frequency anchors: -6.8 = 17 Hz, -5.0 = 100 Hz, -4.2 = 220 Hz, -3.5 = 440 Hz, -2.8 = 860 Hz, -2.2 = 1.5 kHz, -1.7 = 2.3 kHz, -1.2 = 3.5 kHz, -0.7 = 5.0 kHz, -0.2 = 6.8 kHz, +0.4 = 9.0 kHz, +0.9 = 10.7 kHz; values above about +1.5 pin near the top of the audible band. A good default spread is [-5.0, -4.2, -3.5, -2.8, -2.2, -1.7, -1.2, -0.7, -0.2, 0.4]. Valid -6.6..16.7.
+- q_inv: bandwidth; exp(q_inv). More negative = narrower/surgical, more positive = wider/gentler. 0.0 is a musical default. Valid -13.2..9.1.
+- log_gain: about 17.4 dB per raw unit. +0.06 = +1 dB, -0.12 = -2 dB, -0.35 = -6 dB, -0.70 = -12 dB; beyond about +/-0.7 is a drastic reshaping cut/boost -- grafx consoles do use such values, typically on narrow bands or with drywet. Use 0.0 for untouched bands. Mud/boxiness: cut 200-500 Hz (w0 -4.2..-3.5); harshness: 2.3-5 kHz (w0 -1.7..-0.7); air: above 9 kHz (w0 >= 0.4). Valid -9.4..5.0.
+
+### tool: distortion
+Saturation / grit / density. Params: {"drive_db": <number>}.
+- drive_db: sigmoid-mapped to 0..24 dB of drive. -5.0 = nearly clean, -2.2 = 2.4 dB (clearly audible), 0.0 = 12 dB (heavy), above +2 = extreme. Valid -7.7..5.8. Pair audible drive with a lower "drywet" for parallel saturation.
+
+### tool: compressor
+Single-band compressor/expander (stems and buses). Params: {"at": <n>, "rt": <n>, "avg_coef": <n>, "cmp_ratio": <n>, "exp_ratio": <n>, "cmp_th": <n>, "exp_th": <n>, "make_up": <n>}.
+HOW TO CONTROL COMPRESSION AMOUNT (get this right):
+- MORE compression = cmp_th more negative (threshold down) and/or cmp_ratio higher (raw -4.0 = about 1.3:1, -3.0 = 1.9:1, -2.0 = 3.3:1, 0.0 = 10.5:1, +2.0 = 17.8:1; beyond about +/-5 the ratio saturates at 1:1 / 20:1). Valid cmp_ratio -16.3..15.2. Grafx consoles often run strong ratios with a low threshold and a moderate "drywet" (parallel compression).
+- LESS compression = cmp_th closer to 0 and/or cmp_ratio more negative. Do NOT touch make_up to "reduce compression" -- make_up is just level.
+- make_up: passed through as dB. It acts as a fader for this stem/bus in the mix (overall mix loudness is normalized later, so it only changes RELATIVE level). Valid -18.9..11.3.
+- cmp_th: dB-like threshold. Valid -45..-6.
+- at / rt: attack/release smoothing; HIGHER = slower/smoother, lower = faster. Valid at -11.0..14.1, rt -25.1..6.0.
+- avg_coef: detector smoothing; higher = smoother. Valid -9.5..16.8.
+- exp_ratio: expander; higher = gentler (closer to off). Valid -13.9..13.9. exp_th: valid -80.1..-24.8; higher/less negative suppresses more quiet material.
+
+### tool: noisegate
+Reduce bleed/hiss between notes. Params: {"log_threshold": <n>, "log_ratio": <n>, "log_knee": <n>, "z_alpha_pre": <n>}.
+- log_threshold: higher gates more. Valid -5.0..3.6. On tonal/sustained sources keep it low (near -3.5 or below) or the gate chops notes.
+- log_ratio: higher = stronger gating. Valid -2.3..13.0. log_knee: higher = smoother. Valid -9.9..5.3. z_alpha_pre: detector smoothing, lower = faster. Valid -14.5..11.6.
+
+### tool: stereo_imager
+Stereo width via side gain. Params: {"log_gain": <number>}.
+- log_gain: about 8.7 dB per raw unit on the side channel. 0.0 neutral, +0.15 gently wider, -0.2 narrower, -2.4 = essentially mono. Valid -2.4..3.2. NOTE: on a mono source (identical L/R) there is no side signal, so widening does nothing.
+
+### tool: gain_panning
+Level and left/right placement -- THE fader. Params: {"log_gain": [left, right]}.
+- About 8.7 dB per raw unit per channel. Equal values = centered level change: [0.12, 0.12] = about +1 dB, [-0.23, -0.23] = about -2 dB, [-0.6, -0.6] = about -5 dB. Unequal values pan: [0.05, -0.25] leans left. Below about -6.0 a channel is effectively muted; grafx consoles use deep negatives (down to -19.8) to remove a stem's contribution entirely. Valid -19.8..2.7 per slot.
+- This is the most reliable tool for balance problems ("X is too loud/quiet") -- prefer it over EQ or compression for level issues.
+
+### tool: delay
+Echo/slapback (insert-style, not a send). Params: {"delay": <n>, "feedback": <n>, "gain": <n>, "eq_freq": <n>, "eq_Q": <n>, "log_damp": <n>}.
+- delay: sigmoid-mapped 100..1000 ms; -4.0 = 116 ms slapback, 0.0 = 550 ms. Valid -5.0..3.2.
+- feedback: repeats; lower = fewer. Valid -11.1..11.4. gain: delay level, lower = quieter. Valid -14.6..9.0.
+- eq_freq: tone of repeats, lower = darker. Valid -8.9..3.7. eq_Q: valid -4.7..9.8.
+- log_damp: INERT in rendering -- it changes nothing audible. Never spend a revision on it; set 0.0.
+- Control how present the delay is mainly with "drywet" (preset is 20% wet).
+
+### tool: reverb
+Room/ambience (insert-style). Params object shape: {"log_decay": [24 numbers], "log_gain": [24 numbers]}. Flat lists; slots 1-12 = mid channel bands low-to-high, 13-24 = side channel bands.
+- log_decay: sigmoid-mapped 50..2000 ms per band; higher = longer tail. 0.0 = medium. Valid -4.0..2.0.
+- log_gain: DIRECT LINEAR multiplier on each band's envelope -- NOT dB, NOT sigmoid. 0.0 silences a band; 0.2 is a modest level. Valid 0.0..0.8 (never negative).
+- Control the overall wet amount primarily with "drywet" (preset is 25% wet, drywet = -1.1). For a darker reverb, lower the log_gain of the last few slots in each half.
+
+### tool: multiband_compressor
+Master-bus 3-band glue. Params: {"low_cutoff": <n>, "high_cutoff": <n>, "low_shelf_comp_thresh": <n>, "low_shelf_comp_ratio": <n>, "low_shelf_comp_at": <n>, "low_shelf_comp_rt": <n>, "mid_band_comp_thresh": <n>, "mid_band_comp_ratio": <n>, "mid_band_comp_at": <n>, "mid_band_comp_rt": <n>, "high_shelf_comp_thresh": <n>, "high_shelf_comp_ratio": <n>, "high_shelf_comp_at": <n>, "high_shelf_comp_rt": <n>}.
+(Grafx consoles never use this tool, so its ranges are engineering guardrails, not console statistics.)
+- Every value is sigmoid-mapped onto its range; 0.0 = MIDDLE of the range, negative = low end, positive = high end.
+- low_cutoff: 20..300 Hz (0.0 = 160 Hz, -1.5 = 60 Hz). high_cutoff: 2..12 kHz (0.0 = 7 kHz). Valid cutoffs -2.5..2.5.
+- *_thresh: -60..0 dB (0.0 = -30 dB; more negative compresses more). Valid -3..3. *_ratio: 1..20 (-3.0 = 1.9:1 gentle, 0.0 = 10.5:1). Valid -4..2.
+- *_at / *_rt: attack/release in each band's ms range; higher = SLOWER. Valid -3..3.
+- This tool starts BYPASSED (drywet = -9). To use it, set "drywet" explicitly (e.g. 2.0 for 88% wet); leave it bypassed if the premaster already has good dynamics.
+
+### tool: limiter
+Final master peak ceiling. Params: {"threshold": <n>, "at": <n>, "rt": <n>}.
+- threshold: sigmoid-mapped -60..0 dB. 3.1 = about -2.7 dB, 2.9 = -3 dB, 0.0 = -30 dB, deep negatives = very low ceiling. Valid -17.9..3.1. NOTE how grafx consoles master: they NEVER use a barely-touching transparent ceiling -- they limit meaningfully (threshold at or below ~3) and control the amount with "drywet" (their median limiter is only ~30% wet = parallel limiting). Do the same: pick a real threshold and set the blend with drywet.
+- at / rt: DIRECTION IS INVERTED vs other tools: HIGHER raw = FASTER attack/release. 0.0 = mid. Valid at -17.5..16.7, rt -17.2..16.7.
+- The limiter starts BYPASSED (drywet = -9). Engage it by setting "drywet". Remember the mix is loudness-normalized afterwards -- limiting for loudness gains you NOTHING; use it for peak control and density only, and preserve punch.

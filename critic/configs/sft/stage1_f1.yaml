@@ -1,0 +1,69 @@
+# Stage 1, F1: train the audio adapter only (frozen LM, no LoRA). The prompt is the
+# bare <|vision_start|> + 3 audio blocks, the target the F1 criticism JSON.
+# The adapter is saved to <expdir>/adapter_weights.pth and adapter_weights_step<N>.pth
+# at every validation; stage 2 starts from one of those files.
+project: CriticLLM
+model_type: qwen3.5
+activation_checkpointing: false
+lightning:
+  logdir: ${oc.env:CRITIC_RUNS}/logs
+  version_name: CriticStage1_F1
+  logger_type: tensorboard
+  save_checkpoint: true
+  trainer:
+    strategy: ddp
+    precision: bf16-mixed
+    max_steps: 15000
+    max_epochs: -1
+    accumulate_grad_batches: 1   # effective batch 32 = 8 x accum x GPUs (paper run: 4 GPUs, accum 1)
+    val_check_interval: 1000
+    check_val_every_n_epoch: null
+    limit_val_batches: 1.0
+    log_every_n_steps: 10
+    num_sanity_val_steps: 1
+data:
+  target: critic.data.datamodules.CriticismDataModule
+  params:
+    db_path_train: ${oc.env:CRITIC_DATA}/sft/stage1_f1_train.jsonl
+    db_path_val: ${oc.env:CRITIC_DATA}/sft/stage1_f1_val.jsonl
+    model_path: ${oc.env:MIXAGENT_MODELS}/Qwen3.5-4B
+    cache_dir: null
+    batch_size: 8
+    num_workers: 8
+    use_chat: false
+    audio_root: ${oc.env:CRITIC_DATA}
+model:
+  target: critic.model.trainer.LMTrainingWrapper
+  params:
+    model_config:
+      model_type: qwen3.5
+      model_path: ${oc.env:MIXAGENT_MODELS}/Qwen3.5-4B
+      cache_dir: null
+      attn_implementation: sdpa
+      precision: bf16-mixed
+      expdir: ${oc.env:CRITIC_RUNS}/CriticStage1_F1
+      audio_encoder_type: rlat
+      rlat_checkpoint: ${oc.env:MIXAGENT_MODELS}/rlat
+      sao_model_path: ${oc.env:MIXAGENT_MODELS}/stable-audio-open-1.0
+      audio_hidden_size: 1024
+      projector_type: adapter
+      projection_ckpt: null
+      apply_lora: false
+      lora_rank: 128
+      lora_target_modules: [q_proj, k_proj, v_proj, o_proj, in_proj_qkv, in_proj_z, out_proj]
+      loss_type: ce_ntl
+      input_length: 64
+      output_length: 512
+      max_length: 768
+      init_weights_from: null
+    optimizer_config:
+      target: torch.optim.AdamW
+      params:
+        lr: 1.0e-04
+        weight_decay: 0.01
+    scheduler_config:
+      target: critic.model.utils.LinearWarmupCosineDecay
+      params:
+        warmup_steps: 150
+        total_steps: 15000
+        min_lr: 1.0e-07

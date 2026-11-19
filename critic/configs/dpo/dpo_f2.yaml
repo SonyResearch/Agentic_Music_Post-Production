@@ -1,0 +1,70 @@
+# DPO, F2: policy and frozen reference both start from the F2 SFT checkpoint.
+# The reference enters only through ref_lp_* in the pair rows (filled in by critic/train.py).
+# beta 0.1, lr 5e-6, 300 optimizer steps; the best checkpoint is the released f2_dpo critic.
+# The DPO pairs are sampled from, and scored for, this same SFT checkpoint.
+project: CriticLLM
+model_type: qwen3.5
+activation_checkpointing: true
+lightning:
+  logdir: ${oc.env:CRITIC_RUNS}/logs
+  version_name: CriticDPO_F2
+  logger_type: tensorboard
+  save_checkpoint: true
+  trainer:
+    strategy: ddp
+    precision: bf16-mixed
+    max_steps: 300
+    max_epochs: -1
+    accumulate_grad_batches: 4   # 24 pairs/step = 2 x accum x GPUs (paper run: 3 GPUs, accum 4)
+    val_check_interval: 67      # per-rank batches between validations (paper run: 67 at accum 4)
+    check_val_every_n_epoch: null
+    limit_val_batches: 1.0
+    log_every_n_steps: 5
+    num_sanity_val_steps: 1
+data:
+  target: critic.data.datamodules.DPODataModule
+  params:
+    db_path_train: ${oc.env:CRITIC_DATA}/dpo/f2_train.jsonl
+    db_path_val: ${oc.env:CRITIC_DATA}/dpo/f2_val.jsonl
+    model_path: ${oc.env:MIXAGENT_MODELS}/Qwen3.5-4B
+    cache_dir: null
+    batch_size: 2
+    num_workers: 4
+    audio_root: ${oc.env:CRITIC_DATA}
+model:
+  target: critic.model.dpo_trainer.DPOTrainingWrapper
+  params:
+    model_config:
+      model_type: qwen3.5
+      model_path: ${oc.env:MIXAGENT_MODELS}/Qwen3.5-4B
+      cache_dir: null
+      attn_implementation: sdpa
+      precision: bf16-mixed
+      expdir: ${oc.env:CRITIC_RUNS}/CriticDPO_F2
+      audio_encoder_type: rlat
+      rlat_checkpoint: ${oc.env:MIXAGENT_MODELS}/rlat
+      sao_model_path: ${oc.env:MIXAGENT_MODELS}/stable-audio-open-1.0
+      audio_hidden_size: 1024
+      projector_type: adapter
+      projection_ckpt: null
+      apply_lora: true
+      lora_rank: 128
+      lora_target_modules: [q_proj, k_proj, v_proj, o_proj, in_proj_qkv, in_proj_z, out_proj]
+      lora_dropout: 0.0      # F1/F2 paper runs; the F3 run used 0.05
+      dpo_beta: 0.1
+      loss_type: ce              # unused by DPO
+      input_length: 1664
+      output_length: 768
+      max_length: 2560
+      init_weights_from: ${oc.env:MIXAGENT_WEIGHTS}/critic/f2_sft.pt   # the released SFT critic, or your own stage-2 step*.ckpt
+    optimizer_config:
+      target: torch.optim.AdamW
+      params:
+        lr: 5.0e-06
+        weight_decay: 0.01
+    scheduler_config:
+      target: critic.model.utils.LinearWarmupCosineDecay
+      params:
+        warmup_steps: 15
+        total_steps: 300
+        min_lr: 1.0e-08

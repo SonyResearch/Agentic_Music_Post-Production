@@ -1,0 +1,15 @@
+# Captioner extras (caption_stems.py, only for your own songs). Install INTO the agent
+# environment after setup/env_agent.txt -- it already pins the transformers commit Audex needs:
+#   pip install -r setup/env_captioner.txt --no-build-isolation
+# mamba-ssm / causal-conv1d need a CUDA 12 toolkit (nvcc) even when pip finds a prebuilt
+# wheel; point at it if the default nvcc is older:
+#   CUDA_HOME=/usr/local/cuda-12.x PATH=/usr/local/cuda-12.x/bin:$PATH pip install ...
+# The prebuilt wheels need glibc >= 2.32. On older systems (e.g. Ubuntu 20.04) importing
+# mamba_ssm fails with "GLIBC_2.32 not found"; build both from source instead (~20 min):
+#   MAMBA_FORCE_BUILD=TRUE CAUSAL_CONV1D_FORCE_BUILD=TRUE pip install --no-build-isolation \
+#     --no-cache-dir --force-reinstall --no-deps causal-conv1d==1.6.2.post1 mamba-ssm==2.3.1
+# Versions are the ones the shipped captions used.
+accelerate==1.14.0
+causal-conv1d==1.6.2.post1
+mamba-ssm==2.3.1
+huggingface_hub>=1.0

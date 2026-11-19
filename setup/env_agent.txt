@@ -1,0 +1,41 @@
+# Agent environment: mixagent/, run_tool_planning.py, run_param_tuning.py, run_mixagent.py,
+# evaluation/.  Python 3.11.  Versions are the ones the paper's runs used.
+#   python -m venv .venv-agent && . .venv-agent/bin/activate
+#   pip install -r setup/env_agent.txt --extra-index-url https://download.pytorch.org/whl/cu124
+#
+# The planner itself (Qwen3-Omni-30B-A3B-Thinking) is served by vLLM from a SEPARATE
+# environment (servers/serve_planner.sh); the paper used vllm==0.11.1 (torch 2.9.0,
+# transformers 4.57.6, qwen-omni-utils 0.0.9):
+#   pip install vllm==0.11.1 qwen-omni-utils==0.0.9
+torch==2.6.0+cu124
+torchaudio==2.6.0+cu124
+# the Qwen3-Omni processor (planner token counting) loads a video processor that needs torchvision
+torchvision==0.21.0+cu124
+numpy==1.26.4
+scipy==1.17.1
+soundfile==0.14.0
+pyloudnorm==0.1.1
+einops==0.8.2
+requests==2.34.2
+# planner client (OpenAI-compatible API of the vLLM server) + prompt/audio packing
+openai==2.44.0
+qwen-omni-utils==0.0.9
+# Qwen3OmniMoeProcessor (the paper used this transformers commit; >=4.57 has the class)
+transformers @ git+https://github.com/huggingface/transformers@2b422bde641f3f454de318117eef4cdd4562d570
+# differentiable fx processors (mixagent/fx)
+torchcomp @ git+https://github.com/yoyololicon/torchcomp.git@d4851be94752eb777e683f17767f2cd6f0107d4b
+torchlpc==0.7.2
+torch-fftconv==1.0.0
+dasp-pytorch @ git+https://github.com/csteinmetz1/dasp-pytorch.git@c9ae0126e1c441979b93995da061503a0abdceff
+# MRS / MSS metrics
+auraloss==0.4.0
+# (flashfftconv is not needed: the renderer runs with flashfftconv=False.)
+# Retrieval embeddings for Stage 1 (mixagent/tool_planning.py, gemini-embedding-001;
+# needs GEMINI_API_KEY) -- only called when a text-embedding cache entry is missing
+google-genai==2.10.0
+# evaluation/ neural metrics (Fx-Encoder++, TuneJury); TuneJury itself is installed from
+# its GitHub repo (see evaluation/encoders.py: TUNEJURY_ROOT / TUNEJURY_CKPT)
+julius==0.2.7
+fxencoder_plusplus==0.1.5
+laion_clap==1.1.7
+huggingface_hub==1.20.0

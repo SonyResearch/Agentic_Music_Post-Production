@@ -1,0 +1,11 @@
+weights/
+models/
+outputs/
+results/
+runs/
+critic_data/
+*.pt
+*.ckpt
+__pycache__/
+*.pyc
+.venv*/

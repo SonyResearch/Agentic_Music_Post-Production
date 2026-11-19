@@ -1,0 +1,4 @@
+### full
+The target element's effect chain and current parameter values (raw parameter space):
+### stripped
+The target element's effect chain (current parameter values hidden — judge the settings by ear):

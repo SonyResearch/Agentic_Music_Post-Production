@@ -1,0 +1,11 @@
+This is an isolated dry stem. It contains: {instruments}.
+
+Take the stated instrument as given. Listen to the audio and write a concise caption useful for an automatic mixing system. Cover:
+- playing style, performance density, rhythmic pattern
+- tonal range and frequency balance
+- dynamics, transients, sustain, envelope
+- stereo width or panning if audible
+- ambience, room sound, noise, bleed, artifacts
+- practical mix implications (level, EQ, compression, panning, reverb, cleanup)
+
+If the audio clearly does not match "{instruments}", say so briefly. Do not mention that you are an AI. Keep the answer under {caption_words} words.

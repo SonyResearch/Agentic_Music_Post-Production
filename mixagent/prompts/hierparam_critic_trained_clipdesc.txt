@@ -1,0 +1,4 @@
+### solo
+the target element played alone, with its current effect settings applied.
+### master
+the full mix (the target element is the master bus, so its solo IS the mix).

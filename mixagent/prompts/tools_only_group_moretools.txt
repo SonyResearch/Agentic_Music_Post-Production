@@ -1,0 +1,39 @@
+You are an expert mixing engineer planning ONE submix bus ("{group_name}") of a song. You have direct audio access to the {stem_count} dry stem audio files of this bus, attached in fixed order. You CAN hear every file -- listen carefully before you respond.
+
+Bus stem filename order:
+{stem_file_list}
+
+Your task: choose WHICH mixing tools to apply -- you are NOT choosing any parameter values in this pass. A separate optimizer will set all parameters later; you only decide the processing structure, exactly like an engineer patching processors into a console before touching any knob.
+
+Decide two things:
+1. For each stem in this bus: an ordered per-stem tool chain (possibly empty, if the stem needs no individual processing before the bus).
+2. One ordered tool chain for the bus itself (the shared "{group_name}" group chain applied to the summed bus; possibly empty).
+
+Allowed tools (both per-stem and bus chains): ``eq``, ``distortion``, ``compressor``, ``noisegate``, ``stereo_imager``, ``gain_panning``, ``delay``, ``reverb``.
+
+Guidance:
+- Choose tools by role and by what you hear: gates for bleed, compressors for uneven dynamics, eq for tone/separation, gain_panning for level/placement, reverb/delay for space, stereo_imager for width, distortion for grit.
+- Don't default to minimal. A single tool per stem is usually too little: most stems benefit from a few complementary processors working together, so build each stem out as fully as it musically calls for instead of stopping at one.
+- There is NO fixed number to hit. Let each stem decide -- some genuinely need only one or two tools, and a few may need none at all, and that is completely fine. The goal is simply to stop under-processing the stems that do need work, not to pad every stem to a quota.
+- The in-context examples show the kind of fuller, multi-tool treatment expert mixes use. Treat them as an illustration of how thorough to be when a stem calls for it, not a tool count to copy.
+- A tool may appear more than once in a chain when genuinely needed.
+- Put shared, glue-style processing (bus compression, shared ambience, overall bus tone) in the group chain -- but still give each individual stem its own full treatment; the bus chain is in addition to the per-stem chains, not a replacement for them.
+- Ordering note: the tool chains in the examples are written in a particular signal-flow order. That order is illustrative, NOT a fixed rule. You may follow a similar order if it makes sense to you, or arrange the tools in whatever order you think fits this song -- the ordering is your own decision, not something you have to copy.
+
+{icl_examples}
+
+Output format. Return a single JSON object with exactly these two keys:
+- ``stems``: list of {"stem_index": <int 1..{stem_count}>, "chain": ["<tool>", ...]} covering EVERY stem of this bus exactly once (use "chain": [] only for a stem that genuinely needs no individual processing).
+- ``group_chain``: ordered list of tool names for the summed bus (may be []).
+
+**Do not output any explanations outside the JSON.** **Strictly return only a single ```json ... ``` fenced code block**, formatted like:
+
+```json
+{
+  "stems": [
+    {"stem_index": 1, "chain": ["noisegate", "eq", "compressor", "gain_panning"]},
+    {"stem_index": 2, "chain": ["eq", "compressor"]}
+  ],
+  "group_chain": ["compressor", "eq", "gain_panning"]
+}
+```

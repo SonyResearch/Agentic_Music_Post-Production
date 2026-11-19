@@ -1,0 +1,63 @@
+{
+  "_comment": [
+    "One scenario = the stems that sum to one mix, judged together.",
+    "dry = the stem's raw input, before its fx chain.",
+    "wet = the stem's isolated contribution to the mix, after its fx chain (solo the",
+    "      track and print it, with the chain active).",
+    "mix = what all the wet stems currently sum to.",
+    "All three must come from the same session state, or the model sees a",
+    "contradiction it was never trained on.",
+    "chain = the fx modules on that stem, in signal order. Allowed values:",
+    "      eq, compressor, noisegate, distortion, reverb, delay, stereo_imager,",
+    "      gain_panning, limiter, multiband_compressor",
+    "scenario_kind = 'subgroup' when the units are stems feeding a bus (the usual",
+    "      case), 'full' when they are subgroup buses feeding the master.",
+    "Paths may be absolute, or relative to this manifest file.",
+    "Schema example only: the audio files it names are not shipped."
+  ],
+  "scenario_kind": "subgroup",
+  "mix": "audio/mix.wav",
+  "units": [
+    {
+      "name": "kick",
+      "dry": "audio/kick_dry.wav",
+      "wet": "audio/kick_wet.wav",
+      "chain": [
+        "eq",
+        "compressor"
+      ]
+    },
+    {
+      "name": "snare",
+      "dry": "audio/snare_dry.wav",
+      "wet": "audio/snare_wet.wav",
+      "chain": [
+        "eq",
+        "compressor",
+        "reverb"
+      ]
+    },
+    {
+      "name": "bass",
+      "dry": "audio/bass_dry.wav",
+      "wet": "audio/bass_wet.wav",
+      "chain": [
+        "eq",
+        "compressor",
+        "distortion"
+      ]
+    },
+    {
+      "name": "vocal",
+      "dry": "audio/vocal_dry.wav",
+      "wet": "audio/vocal_wet.wav",
+      "chain": [
+        "noisegate",
+        "eq",
+        "compressor",
+        "delay",
+        "reverb"
+      ]
+    }
+  ]
+}

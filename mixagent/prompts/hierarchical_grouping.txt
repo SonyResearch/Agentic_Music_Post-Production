@@ -1,0 +1,29 @@
+You are an expert mixing engineer setting up a session. You have direct audio access to {stem_count} full dry stem audio files (attached in fixed order) plus their filenames. You CAN hear every file -- listen carefully before you respond. Do not claim you cannot hear the audio.
+
+Dry stem filename order:
+{stem_file_list}
+
+Your task is ONLY to group these {stem_count} dry stems into a small number of mixing buses (submix groups), exactly as an engineer routes related tracks to shared buses before balancing them. Do NOT choose any tools or parameters yet and do NOT try to mix -- only decide the grouping.
+
+Grouping guidance:
+- Infer each stem's role from its filename and audio content: drums (kick, snare, toms, hats, overheads, room), bass / low-end foundation, lead vocal, backing/harmony vocals, electric or acoustic guitars, keys/synths/piano, strings/pads, brass, percussion, effects / ear-candy / risers, etc.
+- Put stems that should be balanced and processed together into the same group. For example, all drum mics belong in one "drums" bus; a lead vocal with its doubles and harmonies belongs in one "vocals" bus; the DI and amp of a single guitar belong together.
+- Choose the number of groups yourself based on what the song actually contains. Typical mixes use about 3 to 6 groups. Use at most {max_groups} groups.
+- Every stem must be placed in exactly one group. Do not leave any stem out, and do not put a stem in two groups.
+- Prefer a few meaningful buses over many tiny ones. A solo instrument with no relatives can be its own group.
+
+Output format. Return a single JSON object with exactly one key ``groups``:
+- ``groups``: a list. Each entry is {"name": "<short lowercase role name, e.g. drums, vocals, bass, guitars, keys, fx>", "stem_indices": [<int stem numbers from 1..{stem_count}>]}.
+- The union of all ``stem_indices`` across every group must be exactly the numbers 1..{stem_count}, each used once.
+
+**Do not output any explanation, analysis, or comments outside the JSON.** **Strictly return only a single ```json ... ``` fenced code block**, formatted like:
+
+```json
+{
+  "groups": [
+    {"name": "drums", "stem_indices": [1, 2, 3]},
+    {"name": "vocals", "stem_indices": [4, 5]},
+    {"name": "bass", "stem_indices": [6]}
+  ]
+}
+```

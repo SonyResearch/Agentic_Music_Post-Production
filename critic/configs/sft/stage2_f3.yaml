@@ -1,0 +1,68 @@
+# Stage 2, F3 SFT (given-tools prompt): adapter + LoRA, chat prompt -> CoT + F3 JSON.
+# Loss CE + 0.3 x number-token loss on the answer tokens. Rows without a CoT are skipped.
+# The best checkpoint of this run is the released f3_sft critic.
+project: CriticLLM
+model_type: qwen3.5
+activation_checkpointing: true
+lightning:
+  logdir: ${oc.env:CRITIC_RUNS}/logs
+  version_name: CriticSFT_F3
+  logger_type: tensorboard
+  save_checkpoint: true
+  trainer:
+    strategy: ddp
+    precision: bf16-mixed
+    max_steps: 25000
+    max_epochs: -1
+    accumulate_grad_batches: 2   # effective batch 16 = 2 x accum x GPUs (paper run: 4 GPUs, accum 2)
+    val_check_interval: 1000
+    check_val_every_n_epoch: null
+    limit_val_batches: 1.0
+    log_every_n_steps: 10
+    num_sanity_val_steps: 1
+data:
+  target: critic.data.datamodules.CriticismDataModule
+  params:
+    db_path_train: ${oc.env:CRITIC_DATA}/sft/stage2_f3_train.jsonl
+    db_path_val: ${oc.env:CRITIC_DATA}/sft/stage2_f3_val.jsonl
+    model_path: ${oc.env:MIXAGENT_MODELS}/Qwen3.5-4B
+    cache_dir: null
+    batch_size: 2
+    num_workers: 8
+    use_chat: true
+    audio_root: ${oc.env:CRITIC_DATA}
+model:
+  target: critic.model.trainer.LMTrainingWrapper
+  params:
+    model_config:
+      model_type: qwen3.5
+      model_path: ${oc.env:MIXAGENT_MODELS}/Qwen3.5-4B
+      cache_dir: null
+      attn_implementation: sdpa
+      precision: bf16-mixed
+      expdir: ${oc.env:CRITIC_RUNS}/CriticSFT_F3
+      audio_encoder_type: rlat
+      rlat_checkpoint: ${oc.env:MIXAGENT_MODELS}/rlat
+      sao_model_path: ${oc.env:MIXAGENT_MODELS}/stable-audio-open-1.0
+      audio_hidden_size: 1024
+      projector_type: adapter
+      projection_ckpt: ${oc.env:CRITIC_RUNS}/CriticStage1_F3/adapter_weights.pth   # the final stage-1 adapter (the paper's F3 run used an earlier one, step 750)
+      apply_lora: true
+      lora_rank: 128
+      lora_target_modules: [q_proj, k_proj, v_proj, o_proj, in_proj_qkv, in_proj_z, out_proj]
+      loss_type: ce_ntl
+      input_length: 1664
+      output_length: 2816
+      max_length: 4608
+      init_weights_from: null
+    optimizer_config:
+      target: torch.optim.AdamW
+      params:
+        lr: 5.0e-05
+        weight_decay: 0.01
+    scheduler_config:
+      target: critic.model.utils.LinearWarmupCosineDecay
+      params:
+        warmup_steps: 250
+        total_steps: 25000
+        min_lr: 1.0e-07

@@ -1,0 +1,16 @@
+# Detector environment: detector/ (afxdet + vendored MusicFM), encoder/,
+# servers/detector_server.py.  Python 3.10.  Versions are the ones the paper's detector
+# server ran with; nearby versions are very likely fine.
+#   python -m venv .venv-detector && . .venv-detector/bin/activate
+#   pip install -r setup/env_detector.txt --extra-index-url https://download.pytorch.org/whl/cu121
+torch==2.4.1
+torchaudio==2.4.1
+numpy==2.2.5
+soundfile==0.13.1
+einops==0.8.2
+# Stable Audio Open VAE (AutoencoderOobleck) for RLAT
+diffusers==0.34.0
+# the RLAT checkpoint (encoder/) stores its config as omegaconf objects
+omegaconf==2.3.1
+# MusicFM's conformer layers (transformers.models.wav2vec2_conformer)
+transformers==5.13.1

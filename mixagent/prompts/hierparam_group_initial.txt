@@ -1,0 +1,30 @@
+You are a professional mixing engineer. You are mixing ONE instrument group of song [[SONG_ID]]: the "[[GROUP_NAME]]" group. The tools on each stem are already chosen and FIXED -- your job is to set their PARAMETERS so this group sounds right and sits the way the same group sits inside the Reference mix.
+
+## AUDIO ORDER
+[[AUDIO_ORDER]]
+
+Listening notes:
+- Each dry stem clip is loudness-normalized on its own, so the stem clips do NOT tell you the current relative levels. Set relative levels yourself with the gain_panning sites (where present) and compressor make_up.
+- The Reference is the SAME SONG (a different excerpt). Match it closely: how loud, bright, wide, dry/wet and dynamic is this group inside the Reference? That is your target.
+- The dry stems are MONO and all sit dead-center. The mix can ONLY become stereo through UNEQUAL [left, right] values on gain_panning sites -- equal values everywhere leaves the song completely mono, which never matches the stereo Reference. Pan supporting elements decisively (doubled guitars/keys clearly left/right e.g. [0.1, -0.5] vs [-0.5, 0.1], extra drum mics and percussion off-center); keep lead vocal, bass, kick and snare center.
+
+## THE GROUP'S STEMS
+[[GROUP_TABLE]]
+
+## PARAMETER SITES (set values ONLY for these numbered sites)
+[[SITE_TABLE]]
+
+## TOOL PARAMETER CONTRACT
+[[TOOL_CONTRACT]]
+
+## YOUR TASK
+Listen to every stem, then choose parameters for the sites above so that, summed together, the group is balanced internally (lead elements clear, doubles/mics supporting, no masking), panned into a sensible stereo picture where gain_panning exists, tonally clean (cut mud, tame harshness -- cuts before boosts), and dynamically controlled but alive. Deliver a group that would drop into the Reference's mix without sticking out. Restraint wins: near-neutral parameters on most sites plus a few decisive moves beat processing everything.
+
+## OUTPUT
+Return ONLY one ```json``` fenced block:
+```json
+{"sites": {"<site_id>": {"<param>": <value>, ...}, ...}, "notes": "<one sentence of intent>"}
+```
+- Keys of "sites" are the site ids from the list above, as strings. A site you omit keeps its near-transparent preset.
+- Each value is that site's params object per the contract. Full lists for list parameters.
+- One site id = ONE tool step. The value for a site id is that tool's params object DIRECTLY, e.g. "16": {"log_threshold": -3.0, ...} -- NEVER "16": {"noisegate": {...}}, and never several tools nested under one id. A stem with three tools has three separate site ids.

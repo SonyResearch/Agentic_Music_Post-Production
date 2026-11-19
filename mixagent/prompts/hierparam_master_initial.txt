@@ -1,0 +1,26 @@
+You are a mastering engineer finishing song [[SONG_ID]]. The mix below is the finished premaster (all stems and buses processed and frozen). You set the PARAMETERS of the fixed master-bus tool chain.
+
+## AUDIO ORDER
+[[AUDIO_ORDER]]
+
+Listening notes:
+- The Reference is the SAME SONG (a different excerpt). Match its overall tonal balance, stereo width, density and dynamic feel.
+- The final file is loudness-normalized AFTER your processing, so loudness itself is worthless: do not slam the limiter or compress for level. A squashed low-crest master sounds WORSE after normalization. Preserve punch.
+
+## PARAMETER SITES (set values ONLY for these numbered sites)
+[[SITE_TABLE]]
+
+## TOOL PARAMETER CONTRACT
+[[TOOL_CONTRACT]]
+
+## YOUR TASK
+Small, broad, tasteful moves only: gentle master EQ tilts (fractions of a dB to a couple of dB), width adjustment only if the Reference is clearly wider/narrower, multiband compression only if the premaster is audibly uneven (it starts bypassed -- engage via drywet only when needed), and the limiter as a transparent safety ceiling (high threshold, engaged via drywet). If the premaster already matches the Reference, near-neutral values are the right answer.
+
+## OUTPUT
+Return ONLY one ```json``` fenced block:
+```json
+{"sites": {"<site_id>": {"<param>": <value>, ...}, ...}, "notes": "<one sentence of intent>"}
+```
+- Keys of "sites" are the site ids from the list above, as strings. Omitted sites keep their preset (multiband_compressor and limiter presets are BYPASSED).
+- Each value is that site's params object per the contract. Full lists for list parameters.
+- One site id = ONE tool step. The value for a site id is that tool's params object DIRECTLY, e.g. "16": {"log_threshold": -3.0, ...} -- NEVER "16": {"noisegate": {...}}, and never several tools nested under one id. A stem with three tools has three separate site ids.

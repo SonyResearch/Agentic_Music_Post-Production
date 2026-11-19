@@ -1,0 +1,20 @@
+# Critic environment: critic/ (model, SFT, DPO), servers/critic_server.py, encoder/.
+# Python 3.11.  Versions are the ones the paper's critics were trained and served with.
+#   python -m venv .venv-critic && . .venv-critic/bin/activate
+#   pip install -r setup/env_critic.txt --extra-index-url https://download.pytorch.org/whl/cu126
+torch==2.13.0+cu126
+numpy==2.4.6
+soundfile==0.14.0
+einops==0.8.2
+transformers==5.15.0
+# Qwen3.5 Gated-DeltaNet kernels (transformers falls back to a slow torch path without it)
+flash-linear-attention==0.5.2
+fla-core==0.5.2
+peft==0.20.0
+pytorch-lightning==2.6.5
+tensorboard==2.21.0          # the training configs log to TensorBoard
+omegaconf==2.3.1
+loguru==0.7.3
+requests==2.34.2
+# Stable Audio Open VAE (AutoencoderOobleck) for RLAT
+diffusers==0.39.0
