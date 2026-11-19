@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agentic Music Post-Production</title>
+<meta name="description" content="MixAgent builds interpretable, editable mixing plans guided by a reference song. Paper, code, and audio comparisons.">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+<link rel="preload" href="assets/fonts/noto-sans-variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="site.css">
+<script src="data.js" defer></script>
+<script src="peaks.js" defer></script>
+<script src="critic.js" defer></script>
+<script src="site.js" defer></script>
+</head>
+<body>
+<header class="top">
+  <h1>Agentic Music Post-Production</h1>
+  <ul class="authors">
+    <li><a href="https://jaywonkoo17.github.io/">Jaywon Koo</a><sup>1,*</sup></li>
+    <li>Junghyun Koo<sup>2</sup></li>
+    <li>Marco A. Martínez-Ramírez<sup>2</sup></li>
+    <li>Wei-Hsiang Liao<sup>3</sup></li>
+    <li>Seungheon Doh<sup>3</sup></li>
+    <li>Qiyu Wu<sup>3</sup></li>
+    <li><a href="https://www.cs.rice.edu/~vo9/">Vicente Ordonez</a><sup>1</sup></li>
+    <li>Yuki Mitsufuji<sup>2,3</sup></li>
+  </ul>
+  <ul class="affil">
+    <li><sup>1</sup>Rice University</li>
+    <li><sup>2</sup>Sony Corporate Technology Center America, Inc.</li>
+    <li><sup>3</sup>Sony Group Corporation</li>
+  </ul>
+  <p class="fine"><sup>*</sup>Work done while an intern at Sony</p>
+  <nav class="links" aria-label="Project links">
+    <a href="https://arxiv.org/abs/2610.29093"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2h9l5 5v15H6zM15 2v6h5M9 13h7M9 17h7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/></svg>Paper</a>
+    <a href="https://github.com/SonyResearch/Agentic_Music_Post-Production"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 .5a11.5 11.5 0 0 0-3.64 22.41c.58.1.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.52-1.33-1.28-1.68-1.28-1.68-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.78 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.42-2.69 5.39-5.25 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.67.8.56A11.5 11.5 0 0 0 12 .5z"/></svg>Code</a>
+  </nav>
+</header>
+
+<main>
+<nav class="sectabs" role="tablist" aria-label="Page sections">
+  <button type="button" role="tab" id="sectab-overview" aria-controls="overview" aria-selected="true">Overview</button>
+  <button type="button" role="tab" id="sectab-inside" aria-controls="inside" aria-selected="false" tabindex="-1">Walkthrough</button>
+  <button type="button" role="tab" id="sectab-examples" aria-controls="examples" aria-selected="false" tabindex="-1">Audio examples</button>
+</nav>
+<section id="overview" class="secpanel" role="tabpanel" aria-labelledby="sectab-overview">
+<div class="video" id="video">
+  <div class="vframe">
+    <video controls autoplay muted playsinline preload="auto" poster="assets/overview_poster.jpg" aria-label="MixAgent overview video">
+      <source src="assets/overview.mp4" type="video/mp4">
+    </video>
+    <p class="vsoon" hidden>Video coming soon</p>
+  </div>
+</div>
+<h2 class="ovtitle">Overview of MixAgent</h2>
+<figure class="fig">
+  <img src="assets/pipeline.png" width="2400" height="1212" alt="MixAgent pipeline. (a) A grouping agent routes input tracks into groups such as drums, guitars and vocals. (b) A tool planning agent uses track captions, the style reference and retrieved examples to build audio effect plans at the track, subgroup and full-mix levels. (c) Parameters are initialized, then at each stage a learned detector flags what to fix and a learned critic proposes how to fix it, producing the final mix with an editable plan and log.">
+  <figcaption>(a) A grouping agent routes input tracks into groups. (b) A tool planning agent builds effect plans at the track, subgroup, and full-mix levels. (c) At each level, a learned detector flags what to fix and a learned critic proposes the new parameter values.</figcaption>
+</figure>
+
+
+</section>
+
+<section id="inside" class="block secpanel" role="tabpanel" aria-labelledby="sectab-inside">
+  <h2>Walkthrough of one mix</h2>
+  <p class="lede">A jazz clip with 15 input tracks, followed through all three levels. <b>Qwen plan only</b> keeps Qwen's initial settings at every level, and its subgroup and full-mix examples use the uncorrected track outputs. <b>MixAgent</b> applies corrections at each level.</p>
+  <p class="console-help">Click a level in the diagram, or use the tabs below, to hear that level.</p>
+  <div class="console" id="walk-console"></div>
+  <div id="stage-navigation" class="stages" role="tablist" aria-label="Mixing levels"></div>
+  <div id="walk"></div>
+</section>
+
+<section id="examples" class="block secpanel" role="tabpanel" aria-labelledby="sectab-examples">
+  <h2>Listen to the examples</h2>
+  <div class="exlayout">
+  <div class="exmain">
+  <div class="listen">
+    <div id="clip-list" class="clip-list"></div>
+    <div id="deck" class="deck"></div>
+  </div>
+  <section id="mixing-record" class="record" hidden aria-label="Mixing record for the selected clip"></section>
+  </div>
+  <aside class="exside" aria-label="Listening help">
+  <div class="helpbar" role="group" aria-label="Listening help">
+    <button type="button" class="helpbtn" aria-expanded="false" aria-controls="help-players"><span class="emo" aria-hidden="true">🎚️</span>What each player is and what to listen for</button>
+    <button type="button" class="helpbtn" aria-expanded="false" aria-controls="help-charts"><span class="emo" aria-hidden="true">📊</span>How to read the small charts</button>
+    <button type="button" class="helpbtn" aria-expanded="false" aria-controls="help-fx"><span class="emo" aria-hidden="true">🎛️</span>Audio effects MixAgent can use</button>
+  </div>
+  <div class="guide" id="help-players">
+    <div>
+      <h3><span class="emo" aria-hidden="true">🎚️</span>What each player is</h3>
+      <ul>
+        <li><b>Style reference</b>: the sound to aim for, from another part of the same song.</li>
+        <li><b>Professional mix</b>: the engineer's mix of these exact 15 seconds. No system hears it.</li>
+        <li><b>MixAgent</b>: our system, with a trained detector and critic making numerical corrections.</li>
+        <li><b>Gemini 3.8 Flash, GPT-4o-audio, Qwen3-Omni</b>: general audio-language models given the same tracks, reference and effects library, each writing its plan in one pass.</li>
+        <li><b>MST, Diff-MST, StemFX</b>: prior neural mixing systems that match a reference's style in one pass. MST and StemFX are 4-stem based.</li>
+        <li><b>Different-song reference</b> (listening test): the style reference comes from a different song, so there is no exact target. There, the professional mix is the song's own mix, shown as an anchor. Only MST was rated by listeners. Diff-MST and StemFX are shown for comparison.</li>
+      </ul>
+    </div>
+    <div>
+      <h3><span class="emo" aria-hidden="true">🎧</span>What to listen for</h3>
+      <ol>
+        <li><span class="emo" aria-hidden="true">⚖️</span><b>Balance</b>: can you hear every part, with the lead voice or instrument on top and nothing buried?</li>
+        <li><span class="emo" aria-hidden="true">🎛️</span><b>Tone</b>: is it clear, or muddy (too much low-mid), thin (too little bass) or harsh (too much treble)?</li>
+        <li><span class="emo" aria-hidden="true">🥁</span><b>Dynamics</b>: does it breathe and punch, or does it sound squashed or jumpy?</li>
+        <li><span class="emo" aria-hidden="true">↔️</span><b>Space</b>: is it spread across left and right with sensible reverb, or collapsed to the middle?</li>
+        <li><span class="emo" aria-hidden="true">🎯</span><b>Style</b>: how close does it get to the style reference?</li>
+      </ol>
+    </div>
+  </div>
+  <div class="howto" id="help-charts">
+    <div id="howto-chart" class="cell"></div>
+    <div>
+      <h3><span class="emo" aria-hidden="true">📊</span>Reading the small charts under each player</h3>
+      <p>Each bar shows how much more (up) or less (down) energy a mix has in one frequency band than the target, in dB. <b>Low</b> is bass and kick (below 200 Hz), <b>Lo-mid</b> is the body of most instruments (200 Hz to 1 kHz), <b>Hi-mid</b> is presence and bite (1 to 5 kHz), and <b>High</b> is cymbals and air (above 5 kHz).</p>
+      <p>Grey bars are within 3 dB of the target. <span class="k-pos">Orange</span> means too much, for example harsh or boomy. <span class="k-neg">Blue</span> means too little, for example thin or dull. The grey line at the bottom is stereo width, and the amber tick marks the target's width. This example, Gemini on the opera clip, is thin in the bass and almost mono.</p>
+    </div>
+  </div>
+  <div class="fxbox-panel" id="help-fx"><div class="fxgrid" id="fxgrid"></div></div>
+  </aside>
+  </div>
+</section>
+
+<section id="citation" class="block">
+  <h2>Citation</h2>
+  <pre class="bib"><code>@article{koo2026agentic,
+  title   = {Agentic Music Post-Production},
+  author  = {Koo, Jaywon and Koo, Junghyun and Mart{\'\i}nez-Ram{\'\i}rez, Marco A. and Liao, Wei-Hsiang and Doh, Seungheon and Wu, Qiyu and Ordonez, Vicente and Mitsufuji, Yuki},
+  journal = {arXiv preprint arXiv:2610.29093},
+  year    = {2026}
+}</code></pre>
+</section>
+</main>
+
+<noscript><p class="end">The audio comparisons need JavaScript.</p></noscript>
+</body>
+</html>
